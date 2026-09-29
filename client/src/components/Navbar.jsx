@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BrandLogoMark, MenuIcon, CloseIcon, ArrowRightIcon } from "./Icons";
+import logoImg from "../assets/bootcamp-logo.png";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,7 +50,13 @@ export default function Navbar() {
           onClick={(e) => handleNavClick(e, "top")}
           aria-label="BuilderBootcamp Home"
         >
-          <BrandLogoMark size={36} className="navbar-logo-mark" />
+        <img
+            src={logoImg}
+            alt="BuilderBootcamp Logo"
+            width={40}
+            height={40}
+            className="navbar-logo-mark"
+          />
           <span className="navbar-brand-name">BuilderBootcamp</span>
         </Link>
 
@@ -112,6 +119,13 @@ export default function Navbar() {
                 onClick={(e) => handleNavClick(e, "top")}
               >
                 <BrandLogoMark size={32} />
+                <img
+                  src={logoImg}
+                  alt="BuilderBootcamp Logo"
+                  width={32}
+                  height={32}
+                  className="navbar-logo-mark"
+                />
                 <span className="navbar-brand-name">BuilderBootcamp</span>
               </Link>
               <button

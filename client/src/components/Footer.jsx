@@ -23,17 +23,8 @@ export default function Footer() {
               students and ambitious beginners. Learn by building real, deployable projects.
             </p>
             <div className="footer-social-links">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
-                GH
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Twitter">
-                𝕏
-              </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="LinkedIn">
-                in
-              </a>
-              <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Discord">
-                DC
+              <a href="https://gmail.com" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Gmail">
+                Gm
               </a>
             </div>
           </div>
@@ -53,12 +44,10 @@ export default function Footer() {
           <div className="footer-links-col">
             <h4 className="footer-heading">Programs</h4>
             <ul className="footer-links-list">
-              <li><Link to="/register?course=1">Full-Stack Web Dev</Link></li>
               <li><Link to="/register?course=2">Backend Engineering</Link></li>
               <li><Link to="/register?course=3">Cloud & DevOps</Link></li>
-              <li><Link to="/register?course=4">Frontend with React</Link></li>
-              <li><Link to="/register?course=5">Python Automation</Link></li>
-              <li><Link to="/register?course=6">UI/UX Design Track</Link></li>
+              <li><Link to="/register?course=4">Frontend with Angular</Link></li>
+
             </ul>
           </div>
 
@@ -71,7 +60,7 @@ export default function Footer() {
               </li>
               <li>
                 <span className="contact-label">Student Hotline:</span>
-                <span>+234 (0) 800 BUILDER</span>
+                <span>+234 (0) 9072101755,  +2348032212417</span>
               </li>
               <li>
                 <span className="contact-label">Format:</span>

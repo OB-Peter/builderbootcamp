@@ -1,26 +1,44 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home.jsx";
-import Register from "./pages/Register.jsx";
-import PaymentSuccess from "./pages/PaymentSuccess.jsx";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import Register from "./pages/Register";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
-function Nav() {
-  return (
-    <nav style={{ display: "flex", gap: "1.5rem", padding: "1rem 1.5rem", borderBottom: "1px solid #eee" }}>
-      <Link to="/">BuilderBootcamp</Link>
-      <Link to="/register">Register</Link>
-    </nav>
-  );
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) {
+      window.scrollTo(0, 0);
+    } else {
+      const id = hash.replace("#", "");
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [pathname, hash]);
+
+  return null;
 }
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Nav />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/payment/callback" element={<PaymentSuccess />} />
-      </Routes>
+      <ScrollToTop />
+      <div className="app-shell">
+        <Navbar />
+        <div className="app-main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/payment/callback" element={<PaymentSuccess />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
     </BrowserRouter>
   );
 }

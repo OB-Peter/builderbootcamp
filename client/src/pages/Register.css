@@ -465,23 +465,145 @@
 @media (max-width: 640px) {
   .register-page,
   .register-page-wrapper {
-    padding: 2rem 0 3.5rem;
+    padding: 1.75rem 0 3.5rem;
+  }
+
+  .register-header {
+    margin-bottom: 1.75rem;
   }
 
   .register-card,
   .register-form-card {
-    padding: 1.75rem 1.25rem;
-    border-radius: 12px;
+    padding: 1.5rem 1.25rem;
+    border-radius: 14px;
   }
 
   .order-summary-card {
     padding: 1.5rem 1.25rem;
-    border-radius: 12px;
+    border-radius: 14px;
   }
 
   .summary-meta-grid,
   .summary-meta-row {
     grid-template-columns: 1fr;
     gap: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container,
+  .section-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .register-page,
+  .register-page-wrapper {
+    padding: 1.25rem 0 3rem;
+  }
+
+  .register-nav-back {
+    margin-bottom: 1.25rem;
+  }
+
+  .register-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .register-title,
+  .register-heading {
+    font-size: clamp(1.45rem, 5.5vw, 1.85rem);
+    line-height: 1.25;
+  }
+
+  .register-subtitle,
+  .register-lead {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .register-card,
+  .register-form-card {
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+  }
+
+  .register-card-title {
+    font-size: 1.2rem;
+  }
+
+  .register-card-desc {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group {
+    gap: 0.35rem;
+  }
+
+  .form-label {
+    font-size: 0.825rem;
+  }
+
+  /* 16px font-size to prevent iOS Safari auto-zoom on input focus */
+  .form-input,
+  .form-select {
+    padding: 12px 14px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  .btn-submit-payment,
+  .register-form .btn-primary {
+    padding: 14px 18px;
+    font-size: 0.975rem;
+    border-radius: 10px;
+    min-height: 48px;
+  }
+
+  .register-guarantee,
+  .form-security-guarantee {
+    font-size: 0.75rem;
+  }
+
+  .order-summary-card {
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+  }
+
+  .order-summary-title,
+  .summary-card-title {
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .summary-track-info,
+  .selected-course-details {
+    padding: 1rem 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .summary-track-name {
+    font-size: 1.05rem;
+  }
+
+  .summary-track-desc {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .summary-price-val,
+  .price-amount {
+    font-size: 1.3rem;
+  }
+
+  .summary-benefits li,
+  .summary-includes-list li {
+    font-size: 0.8rem;
+  }
+
+  .need-help-card {
+    padding: 1.15rem 1rem;
   }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { BrandLogoMark, MenuIcon, CloseIcon, ArrowRightIcon } from "./Icons";
+import { MenuIcon, CloseIcon, ArrowRightIcon } from "./Icons";
 import logoImg from "../assets/bootcamp-logo.png";
 
 export default function Navbar() {
@@ -20,6 +20,18 @@ export default function Navbar() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
 
   const handleNavClick = (e, sectionId) => {
     e.preventDefault();
@@ -42,7 +54,11 @@ export default function Navbar() {
   };
 
   return (
-    <header className={`navbar-wrapper ${isScrolled ? "navbar-scrolled" : ""}`}>
+    <header
+      className={`navbar-wrapper ${isScrolled ? "navbar-scrolled" : ""} ${
+        mobileMenuOpen ? "mobile-menu-active" : ""
+      }`}
+    >
       <div className="navbar-container">
         <Link
           to="/"
@@ -50,7 +66,7 @@ export default function Navbar() {
           onClick={(e) => handleNavClick(e, "top")}
           aria-label="BuilderBootcamp Home"
         >
-        <img
+          <img
             src={logoImg}
             alt="BuilderBootcamp Logo"
             width={40}
@@ -82,7 +98,7 @@ export default function Navbar() {
           </a>
         </nav>
 
-        {/* Desktop CTA */}
+        {/* Desktop CTA & Mobile Toggle */}
         <div className="navbar-actions">
           <Link to="/register" className="btn btn-primary btn-nav">
             <span>Join Now</span>
@@ -102,70 +118,55 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Panel */}
+      {/* Mobile Navigation Dropdown Menu & Backdrop */}
       {mobileMenuOpen && (
-        <div className="navbar-mobile-overlay" onClick={() => setMobileMenuOpen(false)}>
+        <>
           <div
-            className="navbar-mobile-drawer"
-            onClick={(e) => e.stopPropagation()}
+            className="navbar-mobile-backdrop"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            className="navbar-mobile-dropdown"
             role="dialog"
             aria-modal="true"
             aria-label="Mobile Navigation"
           >
-            <div className="mobile-drawer-header">
-              <Link
-                to="/"
-                className="navbar-brand"
-                onClick={(e) => handleNavClick(e, "top")}
-              >
-                <BrandLogoMark size={32} />
-                <img
-                  src={logoImg}
-                  alt="BuilderBootcamp Logo"
-                  width={32}
-                  height={32}
-                  className="navbar-logo-mark"
-                />
-                <span className="navbar-brand-name">BuilderBootcamp</span>
-              </Link>
-              <button
-                type="button"
-                className="btn-icon-close"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-label="Close menu"
-              >
-                <CloseIcon size={24} />
-              </button>
-            </div>
-
-            <nav className="mobile-drawer-links">
-              <a href="#about" onClick={(e) => handleNavClick(e, "about")} className="mobile-nav-link">
-                About
+            <nav className="mobile-dropdown-links">
+              <a href="#about" onClick={(e) => handleNavClick(e, "about")} className="mobile-dropdown-link">
+                <span>About</span>
+                <span className="dropdown-link-arrow" aria-hidden="true">→</span>
               </a>
-              <a href="#courses" onClick={(e) => handleNavClick(e, "courses")} className="mobile-nav-link">
-                Courses
+              <a href="#courses" onClick={(e) => handleNavClick(e, "courses")} className="mobile-dropdown-link">
+                <span>Courses</span>
+                <span className="dropdown-link-arrow" aria-hidden="true">→</span>
               </a>
-              <a href="#why-us" onClick={(e) => handleNavClick(e, "why-us")} className="mobile-nav-link">
-                Why BuilderBootcamp
+              <a href="#why-us" onClick={(e) => handleNavClick(e, "why-us")} className="mobile-dropdown-link">
+                <span>Why BuilderBootcamp</span>
+                <span className="dropdown-link-arrow" aria-hidden="true">→</span>
               </a>
-              <a href="#how-it-works" onClick={(e) => handleNavClick(e, "how-it-works")} className="mobile-nav-link">
-                How It Works
+              <a href="#how-it-works" onClick={(e) => handleNavClick(e, "how-it-works")} className="mobile-dropdown-link">
+                <span>How It Works</span>
+                <span className="dropdown-link-arrow" aria-hidden="true">→</span>
               </a>
-              <a href="#outcomes" onClick={(e) => handleNavClick(e, "outcomes")} className="mobile-nav-link">
-                Student Outcomes
+              <a href="#outcomes" onClick={(e) => handleNavClick(e, "outcomes")} className="mobile-dropdown-link">
+                <span>Student Outcomes</span>
+                <span className="dropdown-link-arrow" aria-hidden="true">→</span>
               </a>
-              <a href="#faq" onClick={(e) => handleNavClick(e, "faq")} className="mobile-nav-link">
-                FAQ
+              <a href="#faq" onClick={(e) => handleNavClick(e, "faq")} className="mobile-dropdown-link">
+                <span>FAQ</span>
+                <span className="dropdown-link-arrow" aria-hidden="true">→</span>
               </a>
-              <a href="#contact" onClick={(e) => handleNavClick(e, "contact")} className="mobile-nav-link">
-                Contact
+              <a href="#contact" onClick={(e) => handleNavClick(e, "contact")} className="mobile-dropdown-link">
+                <span>Contact</span>
+                <span className="dropdown-link-arrow" aria-hidden="true">→</span>
               </a>
             </nav>
 
-            <div className="mobile-drawer-footer">
+            <div className="mobile-dropdown-footer">
               <Link
                 to="/register"
-                className="btn btn-primary btn-block"
+                className="btn btn-primary btn-block btn-mobile-cta"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span>Join BuilderBootcamp</span>
@@ -173,7 +174,7 @@ export default function Navbar() {
               </Link>
             </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );

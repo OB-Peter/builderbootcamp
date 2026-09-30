@@ -83,6 +83,20 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+/* Layout Shell */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.app-main-content {
+  flex: 1;
+  width: 100%;
+}
+
 /* Global Container */
 .section-container {
   width: 100%;
@@ -207,12 +221,19 @@ select:focus-visible {
 .navbar-wrapper {
   position: sticky;
   top: 0;
-  z-index: 100;
-  background-color: rgba(255, 255, 255, 0.94);
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
-  transition: box-shadow var(--transition-fast);
+  transition: box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.navbar-wrapper.mobile-menu-active {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .navbar-scrolled {
@@ -220,6 +241,8 @@ select:focus-visible {
 }
 
 .navbar-container {
+  position: relative;
+  z-index: 1002;
   max-width: 1240px;
   margin: 0 auto;
   padding: 0.85rem 1.5rem;
@@ -238,6 +261,7 @@ select:focus-visible {
 .navbar-logo-mark {
   border-radius: 10px;
   flex-shrink: 0;
+  display: block;
 }
 
 .navbar-brand-name {
@@ -278,8 +302,12 @@ select:focus-visible {
 .navbar-mobile-toggle {
   display: none;
   color: var(--ink);
-  padding: 6px;
+  padding: 8px;
   border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .navbar-mobile-toggle:hover {
@@ -287,74 +315,109 @@ select:focus-visible {
   color: var(--brand-orange);
 }
 
-/* Mobile Drawer */
-.navbar-mobile-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(17, 24, 39, 0.5);
-  backdrop-filter: blur(4px);
-  z-index: 200;
-}
-
-.navbar-mobile-drawer {
+/* Mobile Dropdown Backdrop */
+.navbar-mobile-backdrop {
   position: fixed;
   top: 0;
+  left: 0;
   right: 0;
   bottom: 0;
-  width: 85%;
-  max-width: 360px;
-  background-color: var(--surface);
-  box-shadow: var(--shadow-lg);
+  background-color: rgba(17, 24, 39, 0.65) !important;
+  z-index: 999;
+  animation: fadeIn 180ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Mobile Dropdown Menu (100% Solid White, Full-Width) */
+.navbar-mobile-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  opacity: 1 !important;
+  box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.25);
+  border-bottom: 2px solid var(--border);
+  padding: 1rem 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  z-index: 210;
-  animation: slideIn 220ms ease-out;
+  gap: 0.25rem;
+  z-index: 1001;
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: slideDown 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes slideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.mobile-drawer-header {
+.mobile-dropdown-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-dropdown-link {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+  padding: 0.85rem 0.85rem;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #F3F4F6;
+  text-decoration: none;
+  transition: all var(--transition-fast);
 }
 
-.btn-icon-close {
+.dropdown-link-arrow {
   color: var(--muted);
-  padding: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: transform var(--transition-fast), color var(--transition-fast);
 }
 
-.btn-icon-close:hover {
-  color: var(--ink);
-}
-
-.mobile-drawer-links {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  flex: 1;
-}
-
-.mobile-nav-link {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.mobile-nav-link:hover {
+.mobile-dropdown-link:hover,
+.mobile-dropdown-link:active {
+  background-color: var(--orange-light);
   color: var(--brand-orange);
 }
 
-.mobile-drawer-footer {
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
+.mobile-dropdown-link:hover .dropdown-link-arrow,
+.mobile-dropdown-link:active .dropdown-link-arrow {
+  color: var(--brand-orange);
+  transform: translateX(4px);
+}
+
+.mobile-dropdown-footer {
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btn-mobile-cta {
+  width: 100%;
+  justify-content: center;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 750;
+  border-radius: 12px;
 }
 
 /* ==========================================================================
@@ -2205,13 +2268,28 @@ select:focus-visible {
    ========================================================================== */
 
 @media (max-width: 1024px) {
+  .about-section,
+  .courses-section,
+  .why-us-section,
+  .how-it-works-section,
+  .outcomes-section,
+  .testimonials-section,
+  .faq-section {
+    padding: 4.5rem 0;
+  }
+
   .hero-container {
     grid-template-columns: 1fr;
     gap: 3.5rem;
   }
 
   .hero-title {
-    font-size: 3.5rem;
+    font-size: 3.25rem;
+  }
+
+  .badge-top-right,
+  .badge-bottom-left {
+    display: none;
   }
 
   .courses-grid,
@@ -2219,19 +2297,22 @@ select:focus-visible {
   .projects-grid,
   .testimonials-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
   }
 
   .trust-strip-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
   }
 
   .footer-top-grid {
     grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 2.5rem;
   }
 
   .steps-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 3rem 1.5rem;
+    gap: 3.5rem 1.5rem;
   }
 
   .steps-connector-bar {
@@ -2243,12 +2324,24 @@ select:focus-visible {
     gap: 2rem;
   }
 
-  .register-layout-grid {
+  .register-layout-grid,
+  .register-grid {
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 }
 
 @media (max-width: 768px) {
+  .about-section,
+  .courses-section,
+  .why-us-section,
+  .how-it-works-section,
+  .outcomes-section,
+  .testimonials-section,
+  .faq-section {
+    padding: 3.5rem 0;
+  }
+
   .navbar-desktop-links,
   .navbar-actions .btn-nav {
     display: none;
@@ -2258,17 +2351,58 @@ select:focus-visible {
     display: flex;
   }
 
+  .hero-section {
+    padding: 3rem 0 3.5rem;
+  }
+
+  .hero-glow-blob {
+    width: 320px;
+    height: 320px;
+    right: 5%;
+  }
+
   .hero-title {
-    font-size: 2.75rem;
+    font-size: clamp(2.35rem, 6.5vw, 2.75rem);
+  }
+
+  .hero-subtitle {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    max-width: 100%;
+    margin-bottom: 1.75rem;
+  }
+
+  .hero-cta-group {
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-value-checks {
+    gap: 1rem;
+    padding-top: 1rem;
+  }
+
+  .section-header-center {
+    margin: 0 auto 2.5rem;
   }
 
   .section-title {
     font-size: 2rem;
   }
 
+  .section-subtitle {
+    font-size: 1rem;
+  }
+
   .about-grid {
     grid-template-columns: 1fr;
     gap: 2.5rem;
+  }
+
+  .about-prose {
+    font-size: 1rem;
+    line-height: 1.7;
+    margin: 1rem 0 1.5rem;
   }
 
   .courses-grid,
@@ -2277,24 +2411,26 @@ select:focus-visible {
   .testimonials-grid,
   .steps-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .steps-grid {
+    gap: 3.5rem 1rem;
+    margin-top: 2.5rem;
   }
 
   .trust-strip-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-  }
-
-  .footer-top-grid {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
   }
 
   .final-cta-card {
     padding: 3rem 1.5rem;
+    border-radius: 20px;
   }
 
   .cta-heading {
-    font-size: 2.15rem;
+    font-size: 2.25rem;
   }
 
   .cta-features-inline {
@@ -2302,17 +2438,502 @@ select:focus-visible {
     gap: 0.75rem;
   }
 
-  .badge-top-right,
-  .badge-bottom-left {
-    display: none;
+  .footer-top-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .footer-bottom-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding-top: 1.5rem;
+  }
+
+  .outcomes-summary-box {
+    padding: 2.25rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .faq-support-box {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.25rem;
   }
 
   .register-form-card {
     padding: 1.75rem 1.25rem;
   }
+}
 
+@media (max-width: 640px) {
+  .trust-strip-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .hero-cta-group .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .course-filter-bar {
+    gap: 0.4rem;
+    margin-top: 1.5rem;
+  }
+
+  .filter-pill {
+    padding: 7px 14px;
+    font-size: 0.825rem;
+  }
+
+  .payment-status-page {
+    padding: 2.5rem 1rem;
+  }
+
+  .status-card {
+    padding: 2.25rem 1.5rem;
+    border-radius: 18px;
+  }
+
+  .status-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .status-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .receipt-box {
+    padding: 1rem 1.15rem;
+  }
+
+  .receipt-val {
+    word-break: break-all;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .navbar-container {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-brand-name {
+    font-size: 1.1rem;
+  }
+
+  .navbar-logo-mark {
+    width: 32px;
+    height: 32px;
+  }
+
+  .about-section,
+  .courses-section,
+  .why-us-section,
+  .how-it-works-section,
+  .outcomes-section,
+  .testimonials-section,
+  .faq-section {
+    padding: 2.75rem 0;
+  }
+
+  .hero-section {
+    padding: 2rem 0 2.5rem;
+  }
+
+  .hero-eyebrow-badge {
+    font-size: 0.7rem;
+    padding: 5px 11px;
+    margin-bottom: 1rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.85rem, 7.8vw, 2.3rem);
+    line-height: 1.15;
+    margin-bottom: 0.85rem;
+    letter-spacing: -0.025em;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-value-checks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem 0.75rem;
+    padding-top: 1rem;
+  }
+
+  .value-check-item {
+    font-size: 0.8rem;
+    gap: 0.35rem;
+  }
+
+  .check-icon-circle {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Code Mockup on Mobile */
+  .code-mockup-card {
+    border-radius: 14px;
+  }
+
+  .mockup-header {
+    padding: 10px 14px;
+    gap: 0.5rem;
+  }
+
+  .mockup-branch {
+    display: none;
+  }
+
+  .mockup-tab {
+    padding: 3px 8px;
+    font-size: 0.725rem;
+  }
+
+  .mockup-code-body {
+    padding: 0.85rem 0.65rem;
+    font-size: 0.725rem;
+    line-height: 1.55;
+  }
+
+  .mockup-terminal-footer {
+    padding: 8px 12px;
+    font-size: 0.675rem;
+  }
+
+  .terminal-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .section-header-center {
+    margin: 0 auto 1.75rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.55rem, 5.5vw, 1.85rem);
+    line-height: 1.2;
+    margin-bottom: 0.65rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .section-eyebrow {
+    font-size: 0.725rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .comparison-card {
+    padding: 1.25rem 1rem;
+    border-radius: 14px;
+  }
+
+  .progression-flow {
+    padding: 1.25rem 1rem;
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+  }
+
+  .progression-step {
+    gap: 0.75rem;
+  }
+
+  .progression-label {
+    font-size: 0.875rem;
+  }
+
+  .progression-desc {
+    font-size: 0.775rem;
+  }
+
+  /* Course Cards */
+  .course-card {
+    padding: 1.35rem 1rem;
+    border-radius: 14px;
+  }
+
+  .course-title {
+    font-size: 1.18rem;
+  }
+
+  .course-description {
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+  }
+
+  .course-highlights-list {
+    margin-bottom: 1.25rem;
+    gap: 0.4rem;
+  }
+
+  .course-highlights-list li {
+    font-size: 0.825rem;
+  }
+
+  .course-card-footer {
+    padding-top: 1rem;
+  }
+
+  .price-value {
+    font-size: 1.25rem;
+  }
+
+  .btn-course-action {
+    padding: 7px 11px;
+    font-size: 0.825rem;
+  }
+
+  /* Features */
+  .feature-card {
+    padding: 1.35rem 1rem;
+    border-radius: 14px;
+  }
+
+  .feature-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .feature-card-title {
+    font-size: 1.15rem;
+  }
+
+  .feature-card-description {
+    font-size: 0.875rem;
+  }
+
+  /* Steps */
+  .step-card {
+    padding: 1.5rem 1rem 1.25rem;
+    border-radius: 14px;
+  }
+
+  .step-badge-wrapper {
+    width: 48px;
+    height: 48px;
+    margin: -34px auto 1.15rem;
+  }
+
+  .step-number {
+    font-size: 1.05rem;
+  }
+
+  .step-title {
+    font-size: 1.05rem;
+  }
+
+  .step-description {
+    font-size: 0.825rem;
+  }
+
+  /* Projects */
+  .project-card {
+    padding: 1.35rem 1rem;
+    border-radius: 14px;
+  }
+
+  .project-title {
+    font-size: 1.15rem;
+  }
+
+  .project-description {
+    font-size: 0.85rem;
+  }
+
+  /* Outcomes Summary Box */
   .outcomes-summary-box {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1rem;
+    border-radius: 16px;
+  }
+
+  .summary-heading {
+    font-size: clamp(1.35rem, 5.2vw, 1.65rem);
+    line-height: 1.25;
+  }
+
+  .summary-text {
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .outcomes-checklist {
+    gap: 0.75rem;
+  }
+
+  .outcomes-checklist li {
+    font-size: 0.85rem;
+    gap: 0.65rem;
+  }
+
+  /* Testimonials */
+  .testimonial-card {
+    padding: 1.35rem 1rem;
+    border-radius: 14px;
+  }
+
+  .quote-mark {
+    font-size: 2.25rem;
+  }
+
+  .testimonial-quote {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+
+  .author-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
+  }
+
+  .author-name {
+    font-size: 0.9rem;
+  }
+
+  /* FAQ */
+  .faq-question-button {
+    padding: 0.9rem 1rem;
+    font-size: 0.925rem;
+  }
+
+  .faq-answer-pane {
+    padding: 0 1rem 1.15rem;
+  }
+
+  .faq-answer-text {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .faq-support-box {
+    padding: 1rem 0.85rem;
+    margin-top: 2rem;
+  }
+
+  /* Final CTA */
+  .final-cta-card {
+    padding: 2.25rem 1rem;
+    border-radius: 16px;
+  }
+
+  .cta-heading {
+    font-size: clamp(1.6rem, 6.2vw, 2rem);
+    line-height: 1.2;
+  }
+
+  .cta-subheading {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.55;
+  }
+
+  .btn-cta-light {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 20px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+  }
+
+  .cta-features-inline {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    gap: 0.65rem;
+  }
+
+  /* Footer */
+  .footer-dark {
+    padding: 2.75rem 0 1.5rem;
+  }
+
+  .footer-top-grid {
+    gap: 1.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .footer-brand-title {
+    font-size: 1.15rem;
+  }
+
+  .footer-heading {
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .footer-links-list,
+  .footer-contact-list {
+    gap: 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .legal-links {
+    gap: 0.35rem 0.65rem;
+    font-size: 0.775rem;
+  }
+
+  /* Payment Status Page */
+  .status-card {
+    padding: 1.75rem 1rem;
+    border-radius: 14px;
+  }
+
+  .status-icon-circle {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 1.25rem;
+  }
+
+  .status-title {
+    font-size: 1.45rem;
+    line-height: 1.25;
+  }
+
+  .status-sub {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .receipt-box {
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .receipt-row {
+    font-size: 0.8rem;
+    padding: 0.4rem 0;
+  }
+
+  .status-actions {
+    gap: 0.65rem;
   }
 }
 

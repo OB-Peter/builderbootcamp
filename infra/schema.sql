@@ -34,6 +34,12 @@ CREATE TABLE IF NOT EXISTS transactions (
 
 -- Sample course data
 INSERT INTO courses (name, price_kobo, description) VALUES
+<<<<<<< HEAD
   ('Front-End Engineering', 5000000, '8-week intensive front-end-focused track'),
   ('Backend Engineering with Node.js', 4000000, '8-week backend-focused track'),
   ('Cloud & DevOps Fundamentals', 3500000, '8-week cloud & DevOps track');
+=======
+  ('Backend Engineering with Node.js', 1500000, '8-week backend-focused track'),
+  ('Cloud & DevOps Fundamentals', 1500000, '8-week cloud and DevOps track'),
+  ('Frontend Development with React', 1500000, '8-week React frontend track');
+>>>>>>> a1445db (Add .gitignore)

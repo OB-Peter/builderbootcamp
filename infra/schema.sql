@@ -34,6 +34,6 @@ CREATE TABLE IF NOT EXISTS transactions (
 
 -- Sample course data
 INSERT INTO courses (name, price_kobo, description) VALUES
-  ('Full-Stack Web Development', 5000000, '12-week intensive full-stack bootcamp'),
+  ('Front-End Engineering', 5000000, '8-week intensive front-end-focused track'),
   ('Backend Engineering with Node.js', 4000000, '8-week backend-focused track'),
-  ('Cloud & DevOps Fundamentals', 3500000, '6-week AWS-focused DevOps track');
+  ('Cloud & DevOps Fundamentals', 3500000, '8-week cloud & DevOps track');

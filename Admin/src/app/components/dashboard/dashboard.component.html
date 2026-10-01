@@ -1,0 +1,430 @@
+<app-navbar></app-navbar>
+
+<main class="dashboard-page">
+  <div class="content-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Transaction Management</h1>
+        <p class="page-subtitle">Track, audit, and analyze all Paystack payments and enrollment transactions</p>
+      </div>
+
+      <div class="header-buttons">
+        <button (click)="showBackendDocs = true" class="btn btn-outline" title="View backend requirements">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          Backend API Contract
+        </button>
+
+        <button (click)="exportCsv()" class="btn btn-secondary" [disabled]="filteredTransactions.length === 0" title="Export as CSV">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export CSV
+        </button>
+
+        <button (click)="loadTransactions()" class="btn btn-primary" [disabled]="isLoading" title="Refresh transactions">
+          <svg [class.spin]="isLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          {{ isLoading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Integration Notice Banner -->
+    <div *ngIf="transactionService.isUsingMockData" class="alert-banner">
+      <div class="alert-banner-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <div class="alert-banner-content">
+        <strong>Notice for Admin:</strong> Backend endpoint <code>GET /api/payments/transactions</code> is currently in development by the backend team. The admin portal is currently displaying schema-compliant fallback data so you can test all features right now.
+      </div>
+      <button class="alert-banner-action" (click)="showBackendDocs = true">View API Spec</button>
+    </div>
+
+    <!-- Summary Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card revenue-card">
+        <div class="metric-info">
+          <span class="metric-label">Total Revenue</span>
+          <span class="metric-value">{{ formatNaira(summary.totalRevenueKobo) }}</span>
+          <span class="metric-footnote">From successful payments</span>
+        </div>
+        <div class="metric-icon green">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <span class="metric-label">Total Transactions</span>
+          <span class="metric-value">{{ summary.totalTransactions }}</span>
+          <span class="metric-footnote">All recorded payments</span>
+        </div>
+        <div class="metric-icon blue">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <span class="metric-label">Successful</span>
+          <span class="metric-value text-success">{{ summary.successfulCount }}</span>
+          <span class="metric-footnote">Confirmed via Paystack</span>
+        </div>
+        <div class="metric-icon light-green">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <span class="metric-label">Pending / Failed</span>
+          <span class="metric-value text-warning">{{ summary.pendingCount }} <span class="sub-metric">/ {{ summary.failedCount }}</span></span>
+          <span class="metric-footnote">Incomplete or declined</span>
+        </div>
+        <div class="metric-icon amber">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters & Table Card -->
+    <div class="table-container-card">
+      <div class="table-controls">
+        <div class="search-box">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search reference, student name, email, course..."
+          />
+        </div>
+
+        <div class="filter-group">
+          <div class="status-pills">
+            <button
+              [class.active]="selectedStatus === 'all'"
+              (click)="setStatusFilter('all')"
+              class="pill-btn">
+              All ({{ transactions.length }})
+            </button>
+            <button
+              [class.active]="selectedStatus === 'success'"
+              (click)="setStatusFilter('success')"
+              class="pill-btn pill-success">
+              Success ({{ summary.successfulCount }})
+            </button>
+            <button
+              [class.active]="selectedStatus === 'pending'"
+              (click)="setStatusFilter('pending')"
+              class="pill-btn pill-pending">
+              Pending ({{ summary.pendingCount }})
+            </button>
+            <button
+              [class.active]="selectedStatus === 'failed'"
+              (click)="setStatusFilter('failed')"
+              class="pill-btn pill-failed">
+              Failed ({{ summary.failedCount }})
+            </button>
+          </div>
+
+          <div class="sort-select-wrapper">
+            <label for="sortSelect">Sort:</label>
+            <select id="sortSelect" [(ngModel)]="sortBy" (change)="onSortChange()" class="sort-select">
+              <option value="date-desc">Newest First</option>
+              <option value="date-asc">Oldest First</option>
+              <option value="amount-desc">Amount: High to Low</option>
+              <option value="amount-asc">Amount: Low to High</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="state-container">
+        <div class="spinner-large"></div>
+        <p>Loading transactions...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && filteredTransactions.length === 0" class="state-container">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+        </div>
+        <h3>No transactions found</h3>
+        <p>No records match your search or filter criteria.</p>
+        <button *ngIf="searchTerm || selectedStatus !== 'all'" (click)="searchTerm = ''; selectedStatus = 'all'; applyFilters()" class="btn btn-secondary">
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- Transactions Table -->
+      <div *ngIf="!isLoading && filteredTransactions.length > 0" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Reference</th>
+              <th>Student / Customer</th>
+              <th>Course</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tx of filteredTransactions" (click)="openDetails(tx)" class="clickable-row">
+              <td class="date-cell">
+                <span class="primary-text">{{ tx.created_at | date:'MMM d, y' }}</span>
+                <span class="secondary-text">{{ tx.created_at | date:'h:mm a' }}</span>
+              </td>
+              <td>
+                <div class="reference-badge-group">
+                  <span class="reference-code">{{ tx.reference }}</span>
+                  <button
+                    (click)="copyReference(tx.reference, $event)"
+                    class="btn-copy"
+                    [title]="copiedReference === tx.reference ? 'Copied!' : 'Copy Reference'">
+                    <span *ngIf="copiedReference === tx.reference" class="copy-success">✓</span>
+                    <svg *ngIf="copiedReference !== tx.reference" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td>
+                <div class="customer-info">
+                  <span class="primary-text font-medium">{{ tx.student_name || 'Anonymous Student' }}</span>
+                  <span class="secondary-text">{{ tx.student_email || 'No email provided' }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="course-pill">{{ tx.course_name || 'General Tuition' }}</span>
+              </td>
+              <td class="amount-cell">
+                {{ formatNaira(tx.amount_kobo) }}
+              </td>
+              <td>
+                <span
+                  class="status-badge"
+                  [class.status-success]="tx.status === 'success'"
+                  [class.status-pending]="tx.status === 'pending'"
+                  [class.status-failed]="tx.status === 'failed'">
+                  {{ tx.status | uppercase }}
+                </span>
+              </td>
+              <td class="text-right">
+                <button (click)="openDetails(tx); $event.stopPropagation()" class="btn-action">
+                  View Details
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!isLoading && filteredTransactions.length > 0" class="table-footer">
+        <span>Showing <strong>{{ filteredTransactions.length }}</strong> of <strong>{{ transactions.length }}</strong> total records</span>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Transaction Details Modal -->
+<div *ngIf="selectedTransaction" class="modal-backdrop" (click)="closeDetails()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title">Transaction Details</h2>
+        <p class="modal-subtitle">ID #{{ selectedTransaction.id }} • Reference: {{ selectedTransaction.reference }}</p>
+      </div>
+      <button (click)="closeDetails()" class="btn-close">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Status & Amount Overview -->
+      <div class="detail-hero">
+        <div>
+          <span class="hero-label">Amount Paid</span>
+          <h3 class="hero-amount">{{ formatNaira(selectedTransaction.amount_kobo) }}</h3>
+          <span class="hero-kobo">({{ selectedTransaction.amount_kobo | number }} Kobo)</span>
+        </div>
+        <div>
+          <span
+            class="status-badge large"
+            [class.status-success]="selectedTransaction.status === 'success'"
+            [class.status-pending]="selectedTransaction.status === 'pending'"
+            [class.status-failed]="selectedTransaction.status === 'failed'">
+            {{ selectedTransaction.status | uppercase }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Student & Course Details -->
+      <div class="detail-section">
+        <h4 class="section-title">Student & Enrollment</h4>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Full Name</span>
+            <span class="value">{{ selectedTransaction.student_name || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Email Address</span>
+            <span class="value">{{ selectedTransaction.student_email || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Phone</span>
+            <span class="value">{{ selectedTransaction.student_phone || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">School / Institution</span>
+            <span class="value">{{ selectedTransaction.student_school || 'N/A' }}</span>
+          </div>
+          <div class="detail-item full-width">
+            <span class="label">Course</span>
+            <span class="value course-highlight">{{ selectedTransaction.course_name || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Gateway Details -->
+      <div class="detail-section">
+        <h4 class="section-title">Gateway & Timestamps</h4>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Transaction Reference</span>
+            <span class="value font-mono">{{ selectedTransaction.reference }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Recorded At</span>
+            <span class="value">{{ selectedTransaction.created_at | date:'medium' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Payment Channel</span>
+            <span class="value capitalize">{{ selectedTransaction.raw_response?.channel || 'Online / Card' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Gateway Message</span>
+            <span class="value">{{ selectedTransaction.raw_response?.gateway_response || 'Payment processed' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw Paystack Response JSON -->
+      <div class="detail-section">
+        <h4 class="section-title">Raw Paystack Gateway Response (JSON)</h4>
+        <pre class="json-viewer">{{ formatJson(selectedTransaction.raw_response) }}</pre>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="copyReference(selectedTransaction.reference)" class="btn btn-secondary">
+        Copy Reference Code
+      </button>
+      <button (click)="closeDetails()" class="btn btn-primary">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Backend Team API Contract Modal -->
+<div *ngIf="showBackendDocs" class="modal-backdrop" (click)="showBackendDocs = false">
+  <div class="modal-card wide" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title">Backend API Contract Specification</h2>
+        <p class="modal-subtitle">Instructions for the Backend Developer to connect live transactions</p>
+      </div>
+      <button (click)="showBackendDocs = false" class="btn-close">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="intro-p">
+        The admin portal is completely ready to receive transactions. The backend developer simply needs to expose this endpoint in the Node.js Express server:
+      </p>
+
+      <div class="spec-block">
+        <span class="method-tag get">GET</span>
+        <span class="endpoint-path">/api/payments/transactions</span>
+      </div>
+
+      <h4 class="section-title">Expected Response JSON:</h4>
+      <pre class="json-viewer">[
+  {{ '{' }}
+    "id": 1,
+    "student_id": 1,
+    "reference": "bb_9d8e7a6b5c4f3a21",
+    "amount_kobo": 5000000,
+    "status": "success",
+    "student_name": "Babajide Adeleke",
+    "student_email": "babajide@example.com",
+    "student_phone": "+234 803 123 4567",
+    "student_school": "University of Lagos",
+    "course_name": "Full-Stack Web Development",
+    "raw_response": {{ '{' }} ... {{ '}' }},
+    "created_at": "2026-10-01T07:11:05.000Z"
+  {{ '}' }}
+]</pre>
+
+      <h4 class="section-title">Recommended SQL Query for Backend:</h4>
+      <pre class="json-viewer">SELECT 
+  t.id,
+  t.student_id,
+  t.reference,
+  t.amount_kobo,
+  t.status,
+  t.raw_response,
+  t.created_at,
+  s.full_name AS student_name,
+  s.email AS student_email,
+  s.phone AS student_phone,
+  s.school AS student_school,
+  c.name AS course_name
+FROM transactions t
+LEFT JOIN students s ON t.student_id = s.id
+LEFT JOIN courses c ON s.course_id = c.id
+ORDER BY t.created_at DESC;</pre>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="showBackendDocs = false" class="btn btn-primary">
+        Got it!
+      </button>
+    </div>
+  </div>
+</div>

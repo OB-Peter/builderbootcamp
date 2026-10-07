@@ -1,7 +1,30 @@
+// IMPORTANT: ids and names here must match the `courses` table in the database
+// (1 = Frontend Engineering, 2 = Backend Engineering, 3 = Cloud & DevOps Engineering).
+// This list is only the fallback used when the API can't be reached; the register
+// flow submits the id to the backend, so a mismatch would enrol a student in the wrong track.
 export const DEFAULT_COURSES = [
   {
     id: 1,
-    name: "Backend Engineering with Node.js",
+    name: "Frontend Engineering",
+    slug: "frontend-react",
+    category: "Frontend",
+    shortDescription: "Craft responsive, interactive, and high-performance user interfaces with modern React, hooks, and clean CSS.",
+    level: "Beginner",
+    duration: "8 Weeks",
+    price_kobo: 1500000,
+    priceFormatted: "₦15,000",
+    badge: "Student Favorite",
+    icon: "laptop",
+    highlights: [
+      "Modern JavaScript (ES6+) foundations",
+      "Component architecture & state management",
+      "Responsive layout & accessible design",
+      "API consumption & async data loading"
+    ],
+  },
+  {
+    id: 2,
+    name: "Backend Engineering",
     slug: "backend-engineering",
     category: "Backend",
     shortDescription: "Build scalable server architectures, secure authentication, relational database pipelines, and robust REST APIs.",
@@ -19,8 +42,8 @@ export const DEFAULT_COURSES = [
     ],
   },
   {
-    id: 2,
-    name: "Cloud & DevOps Fundamentals",
+    id: 3,
+    name: "Cloud & DevOps Engineering",
     slug: "cloud-devops",
     category: "DevOps",
     shortDescription: "Learn containerization with Docker, CI/CD automation pipelines, cloud deployments, and production server management.",
@@ -37,25 +60,6 @@ export const DEFAULT_COURSES = [
       "Cloud hosting & monitoring"
     ],
   },
-  {
-    id: 3,
-    name: "Frontend Development with React",
-    slug: "frontend-react",
-    category: "Frontend",
-    shortDescription: "Craft responsive, interactive, and high-performance user interfaces with modern React, hooks, and clean CSS.",
-    level: "Beginner",
-    duration: "8 Weeks",
-    price_kobo: 1500000,
-    priceFormatted: "₦15,000",
-    badge: "Student Favorite",
-    icon: "laptop",
-    highlights: [
-      "Modern JavaScript (ES6+) foundations",
-      "Component architecture & state management",
-      "Responsive layout & accessible design",
-      "API consumption & async data loading"
-    ],
-  },
 ];
 
 export const TRUST_INDICATORS = [
@@ -70,7 +74,7 @@ export const HOW_IT_WORKS_STEPS = [
   {
     step: "01",
     title: "Choose a Track",
-    description: "Select the software discipline that fits your career aspirations, from full-stack to backend and cloud.",
+    description: "Select the software discipline that fits your career aspirations: frontend, backend, or cloud and DevOps.",
   },
   {
     step: "02",
@@ -146,12 +150,14 @@ export const OUTCOME_PROJECTS = [
   },
 ];
 
+// NOTE: these are placeholder testimonials, not real student feedback.
+// Replace them with real quotes (with permission) or remove this section before launch.
 export const TESTIMONIAL_PLACEHOLDERS = [
   {
     quote: "BuilderBootcamp completely changed how I look at coding. Instead of copy-pasting tutorials, I actually understood how the frontend talks to the database.",
     name: "Alex O.",
     role: "Computer Science Undergraduate",
-    track: "Full-Stack Web Development",
+    track: "Frontend Engineering",
     initials: "AO",
   },
   {
@@ -165,7 +171,7 @@ export const TESTIMONIAL_PLACEHOLDERS = [
     quote: "The mentorship and supportive community kept me consistent. Whenever I was stuck, there was always help to understand the error and move forward.",
     name: "Chinedu E.",
     role: "Self-Taught Student Builder",
-    track: "Cloud & DevOps Fundamentals",
+    track: "Cloud & DevOps Engineering",
     initials: "CE",
   },
 ];
@@ -181,11 +187,11 @@ export const FAQS = [
   },
   {
     question: "What courses are available?",
-    answer: "We offer tracks in Full-Stack Web Development, Backend Engineering with Node.js, Cloud & DevOps Fundamentals, Frontend React, Python Automation, and UI/UX Design for Software Builders.",
+    answer: "We offer three tracks: Frontend Engineering, Backend Engineering, and Cloud & DevOps Engineering. Each track is hands-on and project-based.",
   },
   {
     question: "How long does each course take?",
-    answer: "Our cohorts typically run between 6 to 12 weeks depending on the selected track. Sessions are structured into weekly modules featuring interactive live lessons, guided coding labs, and milestone projects.",
+    answer: "Each track runs for 8 weeks. Sessions are structured into weekly modules featuring interactive live lessons, guided coding labs, and milestone projects.",
   },
   {
     question: "How do I register?",

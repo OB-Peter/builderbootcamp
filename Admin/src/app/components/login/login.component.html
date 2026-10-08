@@ -7,7 +7,7 @@
         </svg>
       </div>
       <h1 class="brand-title">BuilderBootcamp</h1>
-      <p class="brand-subtitle">Finance & Transactions Admin Portal</p>
+      <p class="brand-subtitle">Finance & Administration Portal</p>
     </div>
 
     <div *ngIf="errorMessage" class="alert alert-error">
@@ -32,7 +32,7 @@
             type="email"
             name="email"
             [(ngModel)]="email"
-            placeholder="admin@builderbootcamp.com"
+            placeholder="admin@builderbootcamp.com.ng"
             required
             autocomplete="email"
           />
@@ -73,16 +73,10 @@
           <span class="spinner"></span> Signing in...
         </span>
       </button>
-
-      <div class="demo-box">
-        <button type="button" class="btn-demo" (click)="fillDemoCredentials()">
-          ⚡ Auto-fill Demo Credentials
-        </button>
-      </div>
     </form>
 
     <div class="login-footer">
-      <p>Protected Admin Area • Paystack & MySQL Integration</p>
+      <p>Secure Admin Portal • BuilderBootcamp</p>
     </div>
   </div>
 </div>

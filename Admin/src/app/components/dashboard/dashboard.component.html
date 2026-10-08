@@ -6,29 +6,40 @@
     <!-- Page Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Transaction Management</h1>
-        <p class="page-subtitle">Track, audit, and analyze all Paystack payments and enrollment transactions</p>
+        <h1 class="page-title">Finance & Administration Portal</h1>
+        <p class="page-subtitle">Track, audit, and analyze live Paystack transactions and enrolled students</p>
       </div>
 
       <div class="header-buttons">
-        <button (click)="showBackendDocs = true" class="btn btn-outline" title="View backend requirements">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16 18 22 12 16 6"></polyline>
-            <polyline points="8 6 2 12 8 18"></polyline>
-          </svg>
-          Backend API Contract
-        </button>
-
-        <button (click)="exportCsv()" class="btn btn-secondary" [disabled]="filteredTransactions.length === 0" title="Export as CSV">
+        <button
+          *ngIf="activeTab === 'transactions'"
+          (click)="exportCsv()"
+          class="btn btn-secondary"
+          [disabled]="filteredTransactions.length === 0"
+          title="Export Transactions CSV">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          Export CSV
+          Export Transactions CSV
         </button>
 
-        <button (click)="loadTransactions()" class="btn btn-primary" [disabled]="isLoading" title="Refresh transactions">
+        <button
+          *ngIf="activeTab === 'students'"
+          (click)="exportStudentsCsv()"
+          class="btn btn-secondary"
+          [disabled]="filteredStudents.length === 0"
+          title="Export Students CSV">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export Students CSV
+        </button>
+
+        <button (click)="loadData()" class="btn btn-primary" [disabled]="isLoading" title="Refresh data">
           <svg [class.spin]="isLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
@@ -39,19 +50,18 @@
       </div>
     </div>
 
-    <!-- Integration Notice Banner -->
-    <div *ngIf="transactionService.isUsingMockData" class="alert-banner">
-      <div class="alert-banner-icon">
+    <!-- Error Alert if any -->
+    <div *ngIf="errorMessage" class="alert-banner" style="border-left-color: #ef4444; background: #fef2f2;">
+      <div class="alert-banner-icon" style="color: #ef4444;">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
       </div>
-      <div class="alert-banner-content">
-        <strong>Notice for Admin:</strong> Backend endpoint <code>GET /api/payments/transactions</code> is currently in development by the backend team. The admin portal is currently displaying schema-compliant fallback data so you can test all features right now.
+      <div class="alert-banner-content" style="color: #991b1b;">
+        <strong>Error:</strong> {{ errorMessage }}
       </div>
-      <button class="alert-banner-action" (click)="showBackendDocs = true">View API Spec</button>
     </div>
 
     <!-- Summary Metrics Cards -->
@@ -60,7 +70,7 @@
         <div class="metric-info">
           <span class="metric-label">Total Revenue</span>
           <span class="metric-value">{{ formatNaira(summary.totalRevenueKobo) }}</span>
-          <span class="metric-footnote">From successful payments</span>
+          <span class="metric-footnote">From {{ summary.successfulCount }} successful payments</span>
         </div>
         <div class="metric-icon green">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -74,7 +84,11 @@
         <div class="metric-info">
           <span class="metric-label">Total Transactions</span>
           <span class="metric-value">{{ summary.totalTransactions }}</span>
-          <span class="metric-footnote">All recorded payments</span>
+          <span class="metric-footnote">
+            <span class="text-success">{{ summary.successfulCount }} Success</span> • 
+            <span class="text-warning">{{ summary.pendingCount }} Pending</span> • 
+            <span class="text-danger">{{ summary.failedCount }} Failed</span>
+          </span>
         </div>
         <div class="metric-icon blue">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -86,23 +100,30 @@
 
       <div class="metric-card">
         <div class="metric-info">
-          <span class="metric-label">Successful</span>
-          <span class="metric-value text-success">{{ summary.successfulCount }}</span>
-          <span class="metric-footnote">Confirmed via Paystack</span>
+          <span class="metric-label">Enrolled Students</span>
+          <span class="metric-value">{{ students.length }}</span>
+          <span class="metric-footnote">
+            <span class="text-success">{{ paidStudentsCount }} Paid</span> • 
+            <span class="text-warning">{{ pendingStudentsCount }} Awaiting</span>
+          </span>
         </div>
         <div class="metric-icon light-green">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
         </div>
       </div>
 
       <div class="metric-card">
         <div class="metric-info">
-          <span class="metric-label">Pending / Failed</span>
-          <span class="metric-value text-warning">{{ summary.pendingCount }} <span class="sub-metric">/ {{ summary.failedCount }}</span></span>
-          <span class="metric-footnote">Incomplete or declined</span>
+          <span class="metric-label">Success Rate</span>
+          <span class="metric-value text-success">
+            {{ summary.totalTransactions > 0 ? ((summary.successfulCount / summary.totalTransactions) * 100 | number:'1.0-1') + '%' : '0%' }}
+          </span>
+          <span class="metric-footnote">Payment conversion rate</span>
         </div>
         <div class="metric-icon amber">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -113,8 +134,35 @@
       </div>
     </div>
 
-    <!-- Filters & Table Card -->
-    <div class="table-container-card">
+    <!-- Dashboard Tabs -->
+    <div class="dashboard-tabs">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'transactions'"
+        (click)="setActiveTab('transactions')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+        </svg>
+        Transactions
+        <span class="tab-count">{{ transactions.length }}</span>
+      </button>
+
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'students'"
+        (click)="setActiveTab('students')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+        </svg>
+        Students & Enrollments
+        <span class="tab-count">{{ students.length }}</span>
+      </button>
+    </div>
+
+    <!-- TRANSACTIONS VIEW -->
+    <div *ngIf="activeTab === 'transactions'" class="table-container-card">
       <div class="table-controls">
         <div class="search-box">
           <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -227,12 +275,12 @@
               </td>
               <td>
                 <div class="customer-info">
-                  <span class="primary-text font-medium">{{ tx.student_name || 'Anonymous Student' }}</span>
-                  <span class="secondary-text">{{ tx.student_email || 'No email provided' }}</span>
+                  <span class="primary-text font-medium">{{ tx.full_name || tx.student_name || 'Anonymous Student' }}</span>
+                  <span class="secondary-text">{{ tx.email || tx.student_email || 'No email provided' }}</span>
                 </div>
               </td>
               <td>
-                <span class="course-pill">{{ tx.course_name || 'General Tuition' }}</span>
+                <span class="course-pill">{{ tx.course_name || tx.course_title || 'General Tuition' }}</span>
               </td>
               <td class="amount-cell">
                 {{ formatNaira(tx.amount_kobo) }}
@@ -240,10 +288,10 @@
               <td>
                 <span
                   class="status-badge"
-                  [class.status-success]="tx.status === 'success'"
-                  [class.status-pending]="tx.status === 'pending'"
-                  [class.status-failed]="tx.status === 'failed'">
-                  {{ tx.status | uppercase }}
+                  [class.status-success]="(tx.status || '').toLowerCase() === 'success'"
+                  [class.status-pending]="(tx.status || '').toLowerCase() === 'pending'"
+                  [class.status-failed]="(tx.status || '').toLowerCase() === 'failed'">
+                  {{ (tx.status || 'UNKNOWN') | uppercase }}
                 </span>
               </td>
               <td class="text-right">
@@ -258,6 +306,146 @@
 
       <div *ngIf="!isLoading && filteredTransactions.length > 0" class="table-footer">
         <span>Showing <strong>{{ filteredTransactions.length }}</strong> of <strong>{{ transactions.length }}</strong> total records</span>
+      </div>
+    </div>
+
+    <!-- STUDENTS VIEW -->
+    <div *ngIf="activeTab === 'students'" class="table-container-card">
+      <div class="table-controls">
+        <div class="search-box">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="studentSearchTerm"
+            (ngModelChange)="onStudentSearchChange()"
+            placeholder="Search student name, email, phone, course, institution..."
+          />
+        </div>
+
+        <div class="filter-group">
+          <div class="status-pills">
+            <button
+              [class.active]="selectedStudentStatus === 'all'"
+              (click)="setStudentStatusFilter('all')"
+              class="pill-btn">
+              All ({{ students.length }})
+            </button>
+            <button
+              [class.active]="selectedStudentStatus === 'paid'"
+              (click)="setStudentStatusFilter('paid')"
+              class="pill-btn pill-success">
+              Paid ({{ paidStudentsCount }})
+            </button>
+            <button
+              [class.active]="selectedStudentStatus === 'pending'"
+              (click)="setStudentStatusFilter('pending')"
+              class="pill-btn pill-pending">
+              Pending ({{ pendingStudentsCount }})
+            </button>
+          </div>
+
+          <div class="sort-select-wrapper">
+            <label for="studentSortSelect">Sort:</label>
+            <select id="studentSortSelect" [(ngModel)]="studentSortBy" (change)="onStudentSortChange()" class="sort-select">
+              <option value="date-desc">Newest First</option>
+              <option value="date-asc">Oldest First</option>
+              <option value="name-asc">Name: A to Z</option>
+              <option value="name-desc">Name: Z to A</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="state-container">
+        <div class="spinner-large"></div>
+        <p>Loading students...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && filteredStudents.length === 0" class="state-container">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+        </div>
+        <h3>No students found</h3>
+        <p>No records match your search or filter criteria.</p>
+        <button *ngIf="studentSearchTerm || selectedStudentStatus !== 'all'" (click)="studentSearchTerm = ''; selectedStudentStatus = 'all'; applyStudentFilters()" class="btn btn-secondary">
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- Students Table -->
+      <div *ngIf="!isLoading && filteredStudents.length > 0" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Student Name</th>
+              <th>Contact Info</th>
+              <th>School / Institution</th>
+              <th>Course</th>
+              <th>Payment Status</th>
+              <th>Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of filteredStudents">
+              <td class="date-cell">
+                <span class="primary-text">{{ s.created_at ? (s.created_at | date:'MMM d, y') : 'N/A' }}</span>
+                <span class="secondary-text">{{ s.created_at ? (s.created_at | date:'h:mm a') : '' }}</span>
+              </td>
+              <td>
+                <span class="primary-text font-medium">{{ s.full_name }}</span>
+              </td>
+              <td>
+                <div class="customer-info">
+                  <span class="primary-text">{{ s.email }}</span>
+                  <span class="secondary-text">{{ s.phone || 'No phone' }}</span>
+                </div>
+              </td>
+              <td>
+                <span>{{ s.school || s.institution || 'N/A' }}</span>
+              </td>
+              <td>
+                <span class="course-pill">{{ s.course_name || 'Enrolled Course' }}</span>
+              </td>
+              <td>
+                <span
+                  class="status-badge"
+                  [class.status-success]="(s.payment_status || '').toLowerCase() === 'paid' || (s.payment_status || '').toLowerCase() === 'success'"
+                  [class.status-pending]="(s.payment_status || '').toLowerCase() !== 'paid' && (s.payment_status || '').toLowerCase() !== 'success'">
+                  {{ ((s.payment_status || '').toLowerCase() === 'paid' || (s.payment_status || '').toLowerCase() === 'success' ? 'PAID' : 'PENDING') }}
+                </span>
+              </td>
+              <td>
+                <div class="reference-badge-group" *ngIf="s.reference">
+                  <span class="reference-code">{{ s.reference }}</span>
+                  <button
+                    (click)="copyReference(s.reference, $event)"
+                    class="btn-copy"
+                    [title]="copiedReference === s.reference ? 'Copied!' : 'Copy Reference'">
+                    <span *ngIf="copiedReference === s.reference" class="copy-success">✓</span>
+                    <svg *ngIf="copiedReference !== s.reference" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                </div>
+                <span *ngIf="!s.reference" class="secondary-text">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!isLoading && filteredStudents.length > 0" class="table-footer">
+        <span>Showing <strong>{{ filteredStudents.length }}</strong> of <strong>{{ students.length }}</strong> registered students</span>
       </div>
     </div>
 
@@ -286,10 +474,10 @@
         <div>
           <span
             class="status-badge large"
-            [class.status-success]="selectedTransaction.status === 'success'"
-            [class.status-pending]="selectedTransaction.status === 'pending'"
-            [class.status-failed]="selectedTransaction.status === 'failed'">
-            {{ selectedTransaction.status | uppercase }}
+            [class.status-success]="(selectedTransaction.status || '').toLowerCase() === 'success'"
+            [class.status-pending]="(selectedTransaction.status || '').toLowerCase() === 'pending'"
+            [class.status-failed]="(selectedTransaction.status || '').toLowerCase() === 'failed'">
+            {{ (selectedTransaction.status || 'UNKNOWN') | uppercase }}
           </span>
         </div>
       </div>
@@ -300,23 +488,23 @@
         <div class="detail-grid">
           <div class="detail-item">
             <span class="label">Full Name</span>
-            <span class="value">{{ selectedTransaction.student_name || 'N/A' }}</span>
+            <span class="value">{{ selectedTransaction.full_name || selectedTransaction.student_name || 'N/A' }}</span>
           </div>
           <div class="detail-item">
             <span class="label">Email Address</span>
-            <span class="value">{{ selectedTransaction.student_email || 'N/A' }}</span>
+            <span class="value">{{ selectedTransaction.email || selectedTransaction.student_email || 'N/A' }}</span>
           </div>
           <div class="detail-item">
             <span class="label">Phone</span>
-            <span class="value">{{ selectedTransaction.student_phone || 'N/A' }}</span>
+            <span class="value">{{ selectedTransaction.phone || selectedTransaction.student_phone || 'N/A' }}</span>
           </div>
           <div class="detail-item">
             <span class="label">School / Institution</span>
-            <span class="value">{{ selectedTransaction.student_school || 'N/A' }}</span>
+            <span class="value">{{ selectedTransaction.institution || selectedTransaction.student_school || selectedTransaction.school || 'N/A' }}</span>
           </div>
           <div class="detail-item full-width">
             <span class="label">Course</span>
-            <span class="value course-highlight">{{ selectedTransaction.course_name || 'N/A' }}</span>
+            <span class="value course-highlight">{{ selectedTransaction.course_name || selectedTransaction.course_title || 'N/A' }}</span>
           </div>
         </div>
       </div>
@@ -345,7 +533,7 @@
       </div>
 
       <!-- Raw Paystack Response JSON -->
-      <div class="detail-section">
+      <div class="detail-section" *ngIf="selectedTransaction.raw_response">
         <h4 class="section-title">Raw Paystack Gateway Response (JSON)</h4>
         <pre class="json-viewer">{{ formatJson(selectedTransaction.raw_response) }}</pre>
       </div>
@@ -357,73 +545,6 @@
       </button>
       <button (click)="closeDetails()" class="btn btn-primary">
         Close
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Backend Team API Contract Modal -->
-<div *ngIf="showBackendDocs" class="modal-backdrop" (click)="showBackendDocs = false">
-  <div class="modal-card wide" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div>
-        <h2 class="modal-title">Backend API Contract Specification</h2>
-        <p class="modal-subtitle">Instructions for the Backend Developer to connect live transactions</p>
-      </div>
-      <button (click)="showBackendDocs = false" class="btn-close">✕</button>
-    </div>
-
-    <div class="modal-body">
-      <p class="intro-p">
-        The admin portal is completely ready to receive transactions. The backend developer simply needs to expose this endpoint in the Node.js Express server:
-      </p>
-
-      <div class="spec-block">
-        <span class="method-tag get">GET</span>
-        <span class="endpoint-path">/api/payments/transactions</span>
-      </div>
-
-      <h4 class="section-title">Expected Response JSON:</h4>
-      <pre class="json-viewer">[
-  {{ '{' }}
-    "id": 1,
-    "student_id": 1,
-    "reference": "bb_9d8e7a6b5c4f3a21",
-    "amount_kobo": 5000000,
-    "status": "success",
-    "student_name": "Babajide Adeleke",
-    "student_email": "babajide@example.com",
-    "student_phone": "+234 803 123 4567",
-    "student_school": "University of Lagos",
-    "course_name": "Full-Stack Web Development",
-    "raw_response": {{ '{' }} ... {{ '}' }},
-    "created_at": "2026-10-01T07:11:05.000Z"
-  {{ '}' }}
-]</pre>
-
-      <h4 class="section-title">Recommended SQL Query for Backend:</h4>
-      <pre class="json-viewer">SELECT 
-  t.id,
-  t.student_id,
-  t.reference,
-  t.amount_kobo,
-  t.status,
-  t.raw_response,
-  t.created_at,
-  s.full_name AS student_name,
-  s.email AS student_email,
-  s.phone AS student_phone,
-  s.school AS student_school,
-  c.name AS course_name
-FROM transactions t
-LEFT JOIN students s ON t.student_id = s.id
-LEFT JOIN courses c ON s.course_id = c.id
-ORDER BY t.created_at DESC;</pre>
-    </div>
-
-    <div class="modal-footer">
-      <button (click)="showBackendDocs = false" class="btn btn-primary">
-        Got it!
       </button>
     </div>
   </div>

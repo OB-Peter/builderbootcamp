@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
-import { TransactionService } from '../../services/transaction.service';
 import { AdminUser } from '../../models/user.model';
 
 @Component({
@@ -11,20 +10,15 @@ import { AdminUser } from '../../models/user.model';
 export class NavbarComponent implements OnInit {
   currentUser: AdminUser | null = null;
 
-  constructor(
-    public authService: AuthService,
-    public transactionService: TransactionService
-  ) {}
+  constructor(public authService: AuthService) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
     });
   }
 
   onLogout(): void {
-    if (confirm('Are you sure you want to sign out of the Admin Portal?')) {
-      this.authService.logout();
-    }
+    this.authService.logout();
   }
 }

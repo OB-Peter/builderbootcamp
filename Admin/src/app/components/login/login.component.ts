@@ -8,7 +8,7 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  email = 'admin@builderbootcamp.com';
+  email = '';
   password = '';
   rememberMe = true;
   isLoading = false;
@@ -22,16 +22,10 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.authService.isAuthenticated()) {
+    if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
     }
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-  }
-
-  fillDemoCredentials(): void {
-    this.email = 'admin@builderbootcamp.com';
-    this.password = 'bootcampAdmin2026';
-    this.errorMessage = '';
   }
 
   onSubmit(): void {
@@ -43,14 +37,20 @@ export class LoginComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.login(this.email, this.password).subscribe({
+    this.authService.login(this.email.trim(), this.password).subscribe({
       next: () => {
         this.isLoading = false;
         this.router.navigateByUrl(this.returnUrl);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.message || 'Invalid credentials or login failed.';
+        if (err.status === 401) {
+          this.errorMessage = 'Invalid email or password. Please try again.';
+        } else if (err.status === 0) {
+          this.errorMessage = 'Cannot connect to backend server. Ensure the API is running.';
+        } else {
+          this.errorMessage = err.error?.error || err.error?.message || err.message || 'Login failed.';
+        }
       }
     });
   }

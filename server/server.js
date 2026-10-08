@@ -11,11 +11,14 @@ const app = express();
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
-  process.env.ADMIN_URL,
-  "http://localhost:4200", // Angular dev server (remove if you don't need it in production)
-].filter(Boolean);
+  ...(process.env.ADMIN_URL || "").split(","),
+  "http://localhost:4200", // remove once you no longer test locally against production
+]
+  .map((o) => o && o.trim().replace(/\/$/, "")) // trim spaces and any trailing slash
+  .filter(Boolean);
 
 app.use(cors({ origin: allowedOrigins }));
+
 app.use(express.json());
 
 app.get("/", (req, res) => {

@@ -1,17 +1,30 @@
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
-// Protects admin-only routes. Clients must send the header:  x-admin-key: <ADMIN_API_KEY>
-// Generate a key with:  openssl rand -hex 32   and set ADMIN_API_KEY on Render.
-export function requireAdmin(req, res, next) {
+function validKey(req) {
   const expected = Buffer.from(process.env.ADMIN_API_KEY || "");
   const provided = Buffer.from(String(req.headers["x-admin-key"] || ""));
+  return (
+    expected.length > 0 &&
+    provided.length === expected.length &&
+    crypto.timingSafeEqual(provided, expected)
+  );
+}
 
-  if (
-    expected.length === 0 ||
-    provided.length !== expected.length ||
-    !crypto.timingSafeEqual(provided, expected)
-  ) {
-    return res.status(401).json({ error: "Unauthorized" });
+export function requireAdmin(req, res, next) {
+  // 1. Bearer JWT (the Angular admin app)
+  const token = req.headers.authorization?.split(" ")[1];
+  if (token) {
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      if (payload.role === "admin") {
+        req.admin = payload;
+        return next();
+      }
+    } catch {}
   }
-  next();
+  // 2. Static key (curl / scripts), the existing behaviour
+  if (validKey(req)) return next();
+
+  return res.status(401).json({ error: "Unauthorized" });
 }

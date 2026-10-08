@@ -9,11 +9,18 @@ export const Transaction = {
     );
     return { id: result.insertId };
   },
+    
 
   async findAll() {
-    const [rows] = await pool.query(
-      "SELECT * FROM transactions ORDER BY created_at DESC"
-    );
-    return rows;
-  },
+  const [rows] = await pool.query(
+    `SELECT t.id, t.student_id, t.reference, t.amount_kobo, t.status, t.created_at,
+            s.full_name, s.email, c.name AS course_name
+     FROM transactions t
+     LEFT JOIN students s ON s.id = t.student_id
+     LEFT JOIN courses c ON c.id = s.course_id
+     ORDER BY t.created_at DESC`
+  );
+  return rows;
+},
+
 };

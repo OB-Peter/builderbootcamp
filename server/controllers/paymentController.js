@@ -173,12 +173,11 @@ export async function handleWebhook(req, res) {
   }
 }
 
-export async function getAllTransactions(req, res) {
+export const getAllTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.findAll();
-    res.json(transactions);
+    const rows = await Transaction.findAll();
+    res.json(rows.map(({ raw_response, ...t }) => t));
   } catch (err) {
-    console.error("getAllTransactions error:", err.message);
     res.status(500).json({ error: "Failed to fetch transactions" });
   }
-}
+};

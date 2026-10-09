@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { Student } from "../models/Student.js";
 import { Course } from "../models/Course.js";
 import { Transaction } from "../models/Transaction.js";
+import { sendWelcomeEmail } from "../services/emailService.js";
 
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,10 +17,7 @@ function paystackHeaders() {
 
 /**
  * Single place that turns a Paystack transaction into "paid".
- * Used by BOTH the redirect verify and the webhook, so it must be idempotent:
- * the two will often arrive for the same payment.
- *
- * `ps` is the Paystack transaction object (data.data from verify, or event.data from the webhook).
+ * Used by BOTH the redirect verify and the webhook (idempotent).
  */
 async function applyPaystackResult(reference, ps) {
   const student = await Student.findByReference(reference);
@@ -29,15 +27,13 @@ async function applyPaystackResult(reference, ps) {
   }
 
   if (ps.status !== "success") {
-    // Only a definitive failure counts as failed. "abandoned"/"pending" (e.g. a bank
-    // transfer still in progress) must stay pending so the webhook can complete it later.
     if (ps.status === "failed" && student.payment_status !== "paid") {
       await Student.updateStatusByReference(reference, "failed");
     }
     return { ok: false, reason: ps.status || "not_successful", student };
   }
 
-  // Never trust "success" alone: the amount and currency must match what we charge.
+  // Ensure amount and currency match what we expect
   const course = await Course.findById(student.course_id);
   if (!course || Number(ps.amount) < Number(course.price_kobo) || ps.currency !== "NGN") {
     console.error("Amount/currency mismatch", {
@@ -49,7 +45,9 @@ async function applyPaystackResult(reference, ps) {
     return { ok: false, reason: "amount_mismatch", student };
   }
 
-  if (student.payment_status !== "paid") {
+  const wasAlreadyPaid = student.payment_status === "paid";
+
+  if (!wasAlreadyPaid) {
     await Student.updateStatusByReference(reference, "paid");
   }
 
@@ -62,8 +60,22 @@ async function applyPaystackResult(reference, ps) {
       raw_response: ps,
     });
   } catch (err) {
-    // transactions.reference is UNIQUE: a duplicate just means the other path got here first.
     if (err.code !== "ER_DUP_ENTRY") throw err;
+  }
+
+  // Send the confirmation & Slack invite email once when transitioning to paid
+  if (!wasAlreadyPaid) {
+    sendWelcomeEmail({
+      to: student.email,
+      name: student.full_name,
+      track: course.name,
+      order: student.id,
+      tier: "Standard",
+      amount: Number(ps.amount) / 100, // convert kobo to Naira
+      reference,
+    }).catch((err) => {
+      console.error("Welcome email delivery failed:", err.message);
+    });
   }
 
   return { ok: true, student: await Student.findByReference(reference) };
@@ -98,6 +110,7 @@ export async function initializePayment(req, res) {
 
     reference = `bb_${crypto.randomBytes(8).toString("hex")}`;
 
+    // Ensure Student.create receives the payload cleanly
     const student = await Student.create({
       full_name,
       email,
@@ -111,7 +124,7 @@ export async function initializePayment(req, res) {
       `${PAYSTACK_BASE_URL}/transaction/initialize`,
       {
         email,
-        amount: course.price_kobo, // always from the database, never from the request
+        amount: course.price_kobo,
         currency: "NGN",
         reference,
         callback_url: `${process.env.FRONTEND_URL}/payment/callback`,
@@ -124,7 +137,6 @@ export async function initializePayment(req, res) {
   } catch (err) {
     console.error("initializePayment error:", err.response?.data || err.message);
     if (reference) {
-      // don't leave an orphan "pending" row when Paystack was never reached
       await Student.updateStatusByReference(reference, "failed").catch(() => {});
     }
     res.status(500).json({ error: "Failed to initialize payment" });
@@ -159,16 +171,13 @@ export async function handleWebhook(req, res) {
   try {
     const event = req.body;
 
-    // The signature middleware has already authenticated this request.
     if (event.event === "charge.success" && event.data?.reference) {
       await applyPaystackResult(event.data.reference, event.data);
     }
 
-    // Always acknowledge a valid event so Paystack doesn't keep retrying one we can't use.
     res.sendStatus(200);
   } catch (err) {
     console.error("handleWebhook error:", err.message);
-    // 500 only for genuine failures (e.g. database down) so Paystack retries later.
     res.sendStatus(500);
   }
 }

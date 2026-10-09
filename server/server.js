@@ -19,7 +19,13 @@ const allowedOrigins = [
 
 app.use(cors({ origin: allowedOrigins }));
 
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 app.get("/", (req, res) => {
   res.json({ status: "BuilderBootcamp API is running" });

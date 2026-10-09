@@ -32,6 +32,7 @@ export default function Register() {
             id: sc.id,
             name: sc.name,
             price_kobo: sc.price_kobo,
+            priceFormatted: `₦${(Number(sc.price_kobo || 0) / 100).toLocaleString("en-NG")}`,
             description: sc.description || match?.shortDescription || "",
             duration: match?.duration || "8 Weeks",
             level: match?.level || "Beginner",

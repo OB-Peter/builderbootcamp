@@ -65,12 +65,16 @@ async function applyPaystackResult(reference, ps) {
 
   // Send the confirmation & Slack invite email once when transitioning to paid
   if (!wasAlreadyPaid) {
+    const studentEmail = (student.email || ps?.customer?.email || "").trim();
+    const studentName = student.full_name || ps?.customer?.first_name || "Builder";
+    const courseName = course?.name || "Builder Bootcamp Track";
+
     sendWelcomeEmail({
-      to: student.email,
-      name: student.full_name,
-      track: course.name,
+      to: studentEmail,
+      name: studentName,
+      track: courseName,
       order: student.id,
-      tier: "Standard",
+      tier: "Cohort 1.0",
       amount: Number(ps.amount) / 100, // convert kobo to Naira
       reference,
     }).catch((err) => {

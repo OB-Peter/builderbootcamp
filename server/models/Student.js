@@ -2,17 +2,18 @@ import pool from "../config/db.js";
 
 export const Student = {
   async create({ full_name, email, phone, school, course_id, reference }) {
-    const [result] = await pool.query(
+    const { rows } = await pool.query(
       `INSERT INTO students (full_name, email, phone, school, course_id, reference, payment_status)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+       VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+       RETURNING id`,
       [full_name, email, phone, school, course_id, reference]
     );
-    return { id: result.insertId, full_name, email, phone, school, course_id, reference };
+    return { id: rows[0].id, full_name, email, phone, school, course_id, reference };
   },
 
   async findByReference(reference) {
-    const [rows] = await pool.query(
-      "SELECT * FROM students WHERE reference = ?",
+    const { rows } = await pool.query(
+      "SELECT * FROM students WHERE reference = $1",
       [reference]
     );
     return rows[0] || null;
@@ -20,13 +21,13 @@ export const Student = {
 
   async updateStatusByReference(reference, status) {
     await pool.query(
-      "UPDATE students SET payment_status = ? WHERE reference = ?",
+      "UPDATE students SET payment_status = $1 WHERE reference = $2",
       [status, reference]
     );
   },
 
   async findAll() {
-    const [rows] = await pool.query(
+    const { rows } = await pool.query(
       `SELECT s.*, c.name AS course_name
        FROM students s
        LEFT JOIN courses c ON s.course_id = c.id

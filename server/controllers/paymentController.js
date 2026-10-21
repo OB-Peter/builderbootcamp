@@ -51,7 +51,7 @@ async function applyPaystackResult(reference, ps) {
     await Student.updateStatusByReference(reference, "paid");
   }
 
-  try {
+  
     await Transaction.create({
       student_id: student.id,
       reference,
@@ -59,10 +59,7 @@ async function applyPaystackResult(reference, ps) {
       status: "success",
       raw_response: ps,
     });
-  } catch (err) {
-    if (err.code !== "ER_DUP_ENTRY") throw err;
-  }
-
+ 
   // Send the confirmation & Slack invite email once when transitioning to paid
   if (!wasAlreadyPaid) {
     const studentEmail = (student.email || ps?.customer?.email || "").trim();

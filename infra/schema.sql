@@ -1,35 +1,31 @@
-CREATE DATABASE IF NOT EXISTS builderbootcamp;
-USE builderbootcamp;
-
 CREATE TABLE IF NOT EXISTS courses (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
   price_kobo INT NOT NULL,
   description TEXT
 );
 
 CREATE TABLE IF NOT EXISTS students (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   full_name VARCHAR(150) NOT NULL,
   email VARCHAR(150) NOT NULL,
   phone VARCHAR(30),
   school VARCHAR(150),
-  course_id INT,
+  course_id INT REFERENCES courses(id),
   reference VARCHAR(100) UNIQUE,
-  payment_status ENUM('pending','paid','failed') DEFAULT 'pending',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (course_id) REFERENCES courses(id)
+  payment_status VARCHAR(10) NOT NULL DEFAULT 'pending'
+    CHECK (payment_status IN ('pending', 'paid', 'failed')),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  student_id INT,
+  id SERIAL PRIMARY KEY,
+  student_id INT REFERENCES students(id),
   reference VARCHAR(100) UNIQUE,
   amount_kobo INT,
   status VARCHAR(20),
-  raw_response JSON,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (student_id) REFERENCES students(id)
+  raw_response JSONB,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Sample course data
